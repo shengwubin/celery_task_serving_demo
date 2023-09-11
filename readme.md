@@ -8,6 +8,8 @@ This is only a demo for celery task serving. It includes:
 4. Dockerfile and docker-compose.yml
 5. Redis for broker and PostgreSQL for result backend
 
+If you are using docker-compose, please set your own ports in `docker-compose.yml`.
+
 ## Run without docker
 
 ### Install broker dependencies

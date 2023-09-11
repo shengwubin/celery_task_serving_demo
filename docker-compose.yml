@@ -66,3 +66,19 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     command: python3 consumer.py
+
+  flask:
+    image: celery_task_serving_demo
+    build: .
+    depends_on:
+      - redis
+      - flower
+      - postgres
+      - worker001
+      - worker002
+    ports:
+      - "5001:5000"
+    environment:
+      - CELERY_FLOWER_METRICS_URL=http://flower:5555/metrics
+      - FLASK_APP=server
+    command: flask run --host 0.0.0.0 --port 5000
