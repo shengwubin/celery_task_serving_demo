@@ -1,0 +1,8 @@
+celery[redis]
+flower
+python-dotenv
+sqlalchemy
+psycopg2
+Flask
+requests
+

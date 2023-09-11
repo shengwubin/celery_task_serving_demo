@@ -1,0 +1,68 @@
+version: '3'
+services:
+  worker001:
+    image: celery_task_serving_demo
+    build: .
+    restart: always
+    depends_on:
+      - redis
+      - flower
+      - postgres
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=db+postgresql://celery_task_serving_demo:celery_task_serving_demo@postgres:5432/celery_task_serving_demo
+    command: celery -A worker.app worker --loglevel=INFO --concurrency=4 -n worker001
+
+  worker002:
+    image: celery_task_serving_demo
+    build: .
+    restart: always
+    depends_on:
+      - redis
+      - flower
+      - postgres
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=db+postgresql://celery_task_serving_demo:celery_task_serving_demo@postgres:5432/celery_task_serving_demo
+    command: celery -A worker.app worker --loglevel=INFO --concurrency=4 -n worker002
+
+
+  redis:
+    image: redis:latest
+    restart: always
+
+  postgres:
+    image: postgres:latest
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_PASSWORD: celery_task_serving_demo
+      POSTGRES_USER: celery_task_serving_demo
+      POSTGRES_DB: celery_task_serving_demo
+
+
+  flower:
+    image: celery_task_serving_demo
+    build: .
+    restart: always
+    ports:
+      - "5556:5555"
+    depends_on:
+      - redis
+      - postgres
+    command: celery -A worker.app --broker=redis://redis:6379/0 --result-backend=db+postgresql://celery_task_serving_demo:celery_task_serving_demo@postgres:5432/celery_task_serving_demo flower --port=5555 --address=0.0.0.0
+
+  unit-test:
+    image: celery_task_serving_demo
+    build: .
+    depends_on:
+      - redis
+      - flower
+      - postgres
+      - worker001
+      - worker002
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    command: python3 consumer.py
